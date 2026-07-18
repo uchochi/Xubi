@@ -54,7 +54,7 @@ export default function NotificationBell() {
 
     if (data) {
       setNotifications(data);
-      setUnreadCount(data.filter((n) => !n.is_read).length);
+      setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
     }
   }, [user, supabase]);
 
@@ -75,7 +75,7 @@ export default function NotificationBell() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
+        (payload: { new: Notification }) => {
           const newNotif = payload.new as Notification;
           setNotifications((prev) => [newNotif, ...prev].slice(0, 20));
           setUnreadCount((prev) => prev + 1);
