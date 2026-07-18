@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
@@ -29,27 +29,22 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Do NOT use supabase.auth.getUser() here — it triggers a
-  // network request and can cause redirect loops. Use the session instead.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
 
-  // Skip redirect logic for auth-related routes
   const isAuthPage = pathname.startsWith("/auth");
   const isAuthCallback = pathname === "/auth/callback";
 
-  // Only redirect unauthenticated users away from protected pages
-  if (!session && !isAuthPage && !isAuthCallback) {
+  if (!user && !isAuthPage && !isAuthCallback) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/signin";
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from auth pages
-  if (session && isAuthPage && !isAuthCallback) {
+  if (user && isAuthPage && !isAuthCallback) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
